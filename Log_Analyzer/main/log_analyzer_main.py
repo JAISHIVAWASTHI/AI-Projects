@@ -220,9 +220,7 @@ class LogAnalyzer:
 
     def return_stable_data_in_vectors(self):
         """Return stable data in vector form"""
-        df = self.read_csv_file(
-            "sasai\src\sasai\log_analyzer\data\sample_data.csv"
-        )
+        df = self.read_csv_file("data\sample_data.csv")
         df = self.map_error_classes_to_num(df)
         df = self.create_num_vector(df)
         x_train, x_test, y_train, y_test = self.split_data_frame_column_data(
