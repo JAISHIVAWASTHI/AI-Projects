@@ -24,6 +24,11 @@ This project is an object detection application built using **FastAPI** for the 
 
 ## Setup Instructions
 
+### Install weights
+https://drive.google.com/file/d/1mN1A6wUdvjItr0radoi2jHL7bBE74SFm/view?usp=sharing
+
+save it as "yolov3.weights" under your repo ex: Object_Detection/yolov3.weights
+
 ### 1. Backend Setup
 The backend uses **FastAPI** to handle the object detection and API requests.
 
