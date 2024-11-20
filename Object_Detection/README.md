@@ -73,23 +73,6 @@ The frontend is built with **React.js** and provides the UI for uploading images
 
 ---
 
-## Project Structure
-```
-.
-├── backend/               # Backend files (FastAPI)
-│   ├── main.py            # Main application file
-│   ├── object_detection/  # Object detection model and logic
-│   ├── uploaded_images/   # Uploaded images
-│   └── Dockerfile         # Dockerfile for backend
-├── frontend/              # Frontend files (React.js)
-│   ├── src/               # React components
-│   ├── public/            # Static assets
-│   └── package.json       # Frontend dependencies
-└── README.md              # Documentation
-```
-
----
-
 ## Example Output
 
 ### Processed Image
