@@ -1,88 +1,82 @@
-name: CI/CD Pipeline
+name: Calculator App CI/CD
 
+# 1. Define when the workflow runs
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+    paths:
+      - 'windsurf/calculator-app/**' # Only run when files in this project change
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
+    paths:
+      - 'windsurf/calculator-app/**'
+  
+  # Allow manual trigger from the GitHub Actions tab
+  workflow_dispatch:
+
+# Define environment variables for the project path for cleaner steps
+env:
+  PROJECT_PATH: windsurf/calculator-app
+  FRONTEND_PATH: windsurf/calculator-app/frontend
+  BACKEND_PATH: windsurf/calculator-app/backend
 
 jobs:
-  test-and-build:
-    name: Test and Build
+  build-and-test:
+    name: Build & Test Microservice
     runs-on: ubuntu-latest
     
-    services:
-      # Service container for the backend
-      backend:
-        image: node:16
-        ports:
-          - 5000:5000
-        env:
-          NODE_ENV: test
-          PORT: 5000
-        # Start the backend server
-        run: |
-          cd backend
-          npm ci
-          npm run build
-          npm start &
-    
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
-        cache: 'npm'
-    
-    # Frontend setup and test
-    - name: Install frontend dependencies
-      working-directory: frontend
-      run: npm ci
-      
-    - name: Run frontend tests
-      working-directory: frontend
-      run: npm test -- --watchAll=false --coverage
-      
-    - name: Build frontend
-      working-directory: frontend
-      run: npm run build
-    
-    # Backend test (runs against the service container)
-    - name: Install backend dependencies
-      working-directory: backend
-      run: npm ci
-      
-    - name: Run backend tests
-      working-directory: backend
-      run: npm test
-    
-    # Only run deployment on push to main/master
-    deploy:
-      name: Deploy
-      needs: test-and-build
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      runs-on: ubuntu-latest
-      
-      steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      # 2. Checkout the repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 3. Setup Node.js (use a common version for both)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
-          
-      # Deploy to Vercel (example - you'll need to set up Vercel)
-      - name: Install Vercel CLI
-        run: npm install -g vercel
+          node-version: '20' # Use a recent stable LTS version
+          cache: 'npm'
+          cache-dependency-path: ${{ env.PROJECT_PATH }}/package-lock.json # Use the root project lockfile (if available)
+
+      # 4. Install Dependencies for Backend and Frontend
+      - name: Install Backend Dependencies
+        run: npm install
+        working-directory: ${{ env.BACKEND_PATH }}
         
-      - name: Deploy to Vercel
-        run: |
-          cd frontend
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Install Frontend Dependencies
+        run: npm install
+        working-directory: ${{ env.FRONTEND_PATH }}
+
+      # 5. Run Tests
+      - name: Run Backend Tests
+        # Replace 'test' with your actual test command (e.g., 'npm run test:ci')
+        run: npm test 
+        working-directory: ${{ env.BACKEND_PATH }}
+        
+      - name: Run Frontend Tests
+        # Replace 'test' with your actual test command
+        run: npm test 
+        working-directory: ${{ env.FRONTEND_PATH }}
+
+      # 6. Build Production Assets
+      - name: Build Backend (TypeScript compile)
+        run: npm run build # Assuming you have a build script for TS compilation
+        working-directory: ${{ env.BACKEND_PATH }}
+
+      - name: Build Frontend (React production build)
+        run: npm run build
+        working-directory: ${{ env.FRONTEND_PATH }}
+      
+      # --- Deployment Steps (Optional, highly dependent on target) ---
+      
+      # 7. (Optional) Deployment Step (Example: Deploying the build artifacts)
+      # This step would typically involve using cloud provider actions (AWS, Azure, GCP)
+      # or self-hosted runners to push the built code to a server.
+      
+      # - name: Deploy to Cloud Service
+      #   uses: your-deployment-action/deploy@v1 
+      #   if: github.ref == 'refs/heads/main' # Only deploy if pushing to main
+      #   with:
+      #     ... deployment credentials and specific paths ...
