@@ -38,12 +38,11 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          # Cache keys use both backend and frontend package-lock files
           cache-dependency-path: |
             ${{ env.BACKEND_PATH }}/package-lock.json
             ${{ env.FRONTEND_PATH }}/package-lock.json
       
-      # 4. Ensure expected project directories exist (fail early with clear message)
+      # 4. Verify Project Paths Exist
       - name: Verify Project Paths Exist
         run: |
           if [ ! -d "${{ env.BACKEND_PATH }}" ]; then 
@@ -60,41 +59,37 @@ jobs:
         working-directory: ${{ env.BACKEND_PATH }}
         run: |
           if [ -f package-lock.json ]; then
-            # Use npm ci for consistent installs if lockfile is present
             npm ci --prefer-offline --no-audit --no-fund
           else
-            # Fallback to npm install if lockfile is missing
             npm install --no-audit --no-fund
           fi
       
       # 6. Install Frontend Dependencies 
-      # (This is the step that failed previously - ensure package-lock.json is committed!)
-        # Step 6. Install Frontend Dependencies (Modified)
       - name: Install Frontend Dependencies
         working-directory: ${{ env.FRONTEND_PATH }}
         run: |
           if [ -f package-lock.json ]; then
-            # 1. Try npm ci first (fastest and most consistent)
-            npm ci --prefer-offline --no-audit --no-fund || { 
-              # 2. If npm ci fails due to sync error, try npm install as a fallback
-              echo "::warning::npm ci failed. Attempting npm install to fix lockfile sync..."
-              npm install --no-audit --no-fund
-            }
+            npm ci --prefer-offline --no-audit --no-fund
           else
-            # 3. If no lockfile exists, just use npm install
             npm install --no-audit --no-fund
           fi
       
-      # 7. Run Tests (use --if-present to succeed if 'test' script is missing)
-      - name: Run Backend Tests
+      # 7. Execute Unit and Integration Tests (UPDATED SECTION)
+      
+      - name: Run Backend UNIT Tests
         working-directory: ${{ env.BACKEND_PATH }}
-        run: npm run test --if-present
+        run: npm run test:unit --if-present
+        
+      - name: Run Backend INTEGRATION Tests
+        working-directory: ${{ env.BACKEND_PATH }}
+        run: npm run test:integration --if-present
       
-      - name: Run Frontend Tests
+      - name: Run Frontend Tests (Assuming one combined test script)
         working-directory: ${{ env.FRONTEND_PATH }}
-        run: npm run test --if-present
+        # If your frontend uses separate scripts too, replace 'npm test' with those scripts.
+        run: npm test --if-present 
       
-      # 8. Build Production Assets (use --if-present)
+      # 8. Build Production Assets
       - name: Build Backend (TypeScript compile)
         working-directory: ${{ env.BACKEND_PATH }}
         run: npm run build --if-present
@@ -103,18 +98,11 @@ jobs:
         working-directory: ${{ env.FRONTEND_PATH }}
         run: npm run build --if-present
       
-      # 9. Artifact Upload (Optional but highly recommended)
+      # 9. Artifact Upload
       - name: Archive Production Artifacts (Backend & Frontend)
         uses: actions/upload-artifact@v4
         with:
           name: calculator-app-build-artifacts
           path: |
-            ${{ env.BACKEND_PATH }}/dist # Adjust 'dist' based on your backend build output
-            ${{ env.FRONTEND_PATH }}/build # Adjust 'build' based on your frontend build output
-            
-      # --- Deployment Steps ---
-      
-      # Example: Deployment to a cloud service happens here after a successful build
-      # - name: Deploy to Cloud Service
-      #   if: github.ref == 'refs/heads/main' 
-      #   uses: ... (e.g., aws-actions/configure-aws-credentials@v4)
+            ${{ env.BACKEND_PATH }}/dist 
+            ${{ env.FRONTEND_PATH }}/build
