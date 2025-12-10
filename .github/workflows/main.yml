@@ -36,9 +36,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use a recent stable LTS version
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: ${{ env.PROJECT_PATH }}/package-lock.json # Use the root project lockfile (if available)
+          cache-dependency-path: |
+            windsurf/calculator-app/backend/package-lock.json
+            windsurf/calculator-app/frontend/package-lock.json # Use the root project lockfile (if available)
 
       # 4. Install Dependencies for Backend and Frontend
       - name: Install Backend Dependencies
