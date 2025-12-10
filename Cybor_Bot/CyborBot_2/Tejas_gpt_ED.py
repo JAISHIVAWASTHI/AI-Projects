@@ -15,7 +15,7 @@ n_head = 6
 n_layer = 6
 dropout = 0.2
 torch.manual_seed(1337)
-with open("transformer_gpt/tejas_networks.txt", "r", encoding="utf-8") as f:
+with open("AI-Projects\Cybor_Bot\CyborBot_2\input.txt", "r", encoding="utf-8") as f:
     text = f.read()
 
 # here are all the unique characters that occur in this text

@@ -18,6 +18,7 @@ app.mount(
 
 
 def bott():
+    print("start")
     df = bot.read_data()
     bot.input_data_for_encoder(df)
     bot.input_data_for_decoder(df)
@@ -25,7 +26,7 @@ def bott():
     bot.setup_encoder_decoder_data()
 
 
-templates = Jinja2Templates(directory="/home/sasai/Downloads/Cybor_Bot/templates")
+templates = Jinja2Templates(directory="AI-Projects/Cybor_Bot/templates")
 
 # bot.train_model("128","2")
 i = 0
@@ -43,12 +44,14 @@ def get_bot_response(msg: str):
     try:
 
         answer = bot.predict_output(msg)
+        # answer= "Hello" 
     except:
         answer = (
             "This question is out of my knowledge.....Please wait for my new version"
         )
 
     return str(answer)
+
 
 
 if __name__ == "__main__":
