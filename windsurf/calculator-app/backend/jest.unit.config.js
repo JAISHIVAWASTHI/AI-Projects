@@ -19,5 +19,5 @@ module.exports = {
       statements: 80,
     },
   },
-  setupFiles: ['<rootDir>/test/setup.ts'],
+  setupFiles: [],
 };
