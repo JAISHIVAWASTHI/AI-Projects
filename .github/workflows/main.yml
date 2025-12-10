@@ -24,7 +24,7 @@ env:
 
 jobs:
   build-and-test:
-    name: Build & Test Microservice
+    name: Build & Test Calculator App
     runs-on: ubuntu-latest
     
     steps:
@@ -32,34 +32,43 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 3. Setup Node.js (use a common version for both)
-# Setup Node.js with caching for both backend and frontend lockfiles
+      # 3. Setup Node.js (v20 LTS) with caching for both sub-projects
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
+          # Cache keys use both backend and frontend package-lock files
           cache-dependency-path: |
             ${{ env.BACKEND_PATH }}/package-lock.json
             ${{ env.FRONTEND_PATH }}/package-lock.json
       
-      # Ensure expected project directories exist (fail early with clear message)
-      - name: Verify project paths exist
+      # 4. Ensure expected project directories exist (fail early with clear message)
+      - name: Verify Project Paths Exist
         run: |
-          if [ ! -d "${{ env.BACKEND_PATH }}" ]; then echo "Missing backend path: ${{ env.BACKEND_PATH }}"; exit 1; fi
-          if [ ! -d "${{ env.FRONTEND_PATH }}" ]; then echo "Missing frontend path: ${{ env.FRONTEND_PATH }}"; exit 1; fi
+          if [ ! -d "${{ env.BACKEND_PATH }}" ]; then 
+            echo "::error::Missing backend path: ${{ env.BACKEND_PATH }}. Check monorepo structure."
+            exit 1
+          fi
+          if [ ! -d "${{ env.FRONTEND_PATH }}" ]; then 
+            echo "::error::Missing frontend path: ${{ env.FRONTEND_PATH }}. Check monorepo structure."
+            exit 1
+          fi
       
-      # Install Backend Dependencies (use npm ci when a lockfile exists)
+      # 5. Install Backend Dependencies
       - name: Install Backend Dependencies
         working-directory: ${{ env.BACKEND_PATH }}
         run: |
           if [ -f package-lock.json ]; then
+            # Use npm ci for consistent installs if lockfile is present
             npm ci --prefer-offline --no-audit --no-fund
           else
+            # Fallback to npm install if lockfile is missing
             npm install --no-audit --no-fund
           fi
       
-      # Install Frontend Dependencies (use npm ci when a lockfile exists)
+      # 6. Install Frontend Dependencies 
+      # (This is the step that failed previously - ensure package-lock.json is committed!)
       - name: Install Frontend Dependencies
         working-directory: ${{ env.FRONTEND_PATH }}
         run: |
@@ -69,7 +78,7 @@ jobs:
             npm install --no-audit --no-fund
           fi
       
-      # Run tests (do not fail if test script is not defined)
+      # 7. Run Tests (use --if-present to succeed if 'test' script is missing)
       - name: Run Backend Tests
         working-directory: ${{ env.BACKEND_PATH }}
         run: npm run test --if-present
@@ -78,7 +87,7 @@ jobs:
         working-directory: ${{ env.FRONTEND_PATH }}
         run: npm run test --if-present
       
-      # Build (do not fail if build script is not defined)
+      # 8. Build Production Assets (use --if-present)
       - name: Build Backend (TypeScript compile)
         working-directory: ${{ env.BACKEND_PATH }}
         run: npm run build --if-present
@@ -87,14 +96,18 @@ jobs:
         working-directory: ${{ env.FRONTEND_PATH }}
         run: npm run build --if-present
       
-      # --- Deployment Steps (Optional, highly dependent on target) ---
+      # 9. Artifact Upload (Optional but highly recommended)
+      - name: Archive Production Artifacts (Backend & Frontend)
+        uses: actions/upload-artifact@v4
+        with:
+          name: calculator-app-build-artifacts
+          path: |
+            ${{ env.BACKEND_PATH }}/dist # Adjust 'dist' based on your backend build output
+            ${{ env.FRONTEND_PATH }}/build # Adjust 'build' based on your frontend build output
+            
+      # --- Deployment Steps ---
       
-      # 7. (Optional) Deployment Step (Example: Deploying the build artifacts)
-      # This step would typically involve using cloud provider actions (AWS, Azure, GCP)
-      # or self-hosted runners to push the built code to a server.
-      
+      # Example: Deployment to a cloud service happens here after a successful build
       # - name: Deploy to Cloud Service
-      #   uses: your-deployment-action/deploy@v1 
-      #   if: github.ref == 'refs/heads/main' # Only deploy if pushing to main
-      #   with:
-      #     ... deployment credentials and specific paths ...
+      #   if: github.ref == 'refs/heads/main' 
+      #   uses: ... (e.g., aws-actions/configure-aws-credentials@v4)
