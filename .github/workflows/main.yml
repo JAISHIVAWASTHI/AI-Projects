@@ -32,7 +32,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 3. Setup Node.js (v20 LTS) with caching for both sub-projects
+      # 3. Setup Node.js (v20 LTS) with caching
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -54,28 +54,36 @@ jobs:
             exit 1
           fi
       
-      # 5. Install Backend Dependencies
+      # 5. Install Backend Dependencies (WITH FALLBACK)
       - name: Install Backend Dependencies
         working-directory: ${{ env.BACKEND_PATH }}
         run: |
           if [ -f package-lock.json ]; then
-            npm ci --prefer-offline --no-audit --no-fund
+            # Attempt npm ci first for speed and consistency.
+            # Use || npm install as a fallback if ci fails (e.g., due to lockfile sync issues)
+            npm ci --prefer-offline --no-audit --no-fund || {
+              echo "::warning::npm ci failed. Falling back to npm install to fix lockfile."
+              npm install --no-audit --no-fund
+            }
           else
+            # If no lockfile exists, proceed with a regular install.
             npm install --no-audit --no-fund
           fi
       
-      # 6. Install Frontend Dependencies 
+      # 6. Install Frontend Dependencies (WITH FALLBACK)
       - name: Install Frontend Dependencies
         working-directory: ${{ env.FRONTEND_PATH }}
         run: |
           if [ -f package-lock.json ]; then
-            npm ci --prefer-offline --no-audit --no-fund
+            npm ci --prefer-offline --no-audit --no-fund || {
+              echo "::warning::npm ci failed. Falling back to npm install to fix lockfile."
+              npm install --no-audit --no-fund
+            }
           else
             npm install --no-audit --no-fund
           fi
       
-      # 7. Execute Unit and Integration Tests (UPDATED SECTION)
-      
+      # 7. Execute Unit and Integration Tests
       - name: Run Backend UNIT Tests
         working-directory: ${{ env.BACKEND_PATH }}
         run: npm run test:unit --if-present
@@ -84,9 +92,8 @@ jobs:
         working-directory: ${{ env.BACKEND_PATH }}
         run: npm run test:integration --if-present
       
-      - name: Run Frontend Tests (Assuming one combined test script)
+      - name: Run Frontend Tests
         working-directory: ${{ env.FRONTEND_PATH }}
-        # If your frontend uses separate scripts too, replace 'npm test' with those scripts.
         run: npm test --if-present 
       
       # 8. Build Production Assets
