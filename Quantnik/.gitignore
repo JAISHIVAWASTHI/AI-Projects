@@ -1,3 +1,5 @@
 venv_quantnik
 vectorstore
 __pycache__/
+models
+jira_servies.py
