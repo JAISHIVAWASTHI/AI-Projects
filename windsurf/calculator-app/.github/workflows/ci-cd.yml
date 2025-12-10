@@ -1,0 +1,88 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-build:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    
+    services:
+      # Service container for the backend
+      backend:
+        image: node:16
+        ports:
+          - 5000:5000
+        env:
+          NODE_ENV: test
+          PORT: 5000
+        # Start the backend server
+        run: |
+          cd backend
+          npm ci
+          npm run build
+          npm start &
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+        cache: 'npm'
+    
+    # Frontend setup and test
+    - name: Install frontend dependencies
+      working-directory: frontend
+      run: npm ci
+      
+    - name: Run frontend tests
+      working-directory: frontend
+      run: npm test -- --watchAll=false --coverage
+      
+    - name: Build frontend
+      working-directory: frontend
+      run: npm run build
+    
+    # Backend test (runs against the service container)
+    - name: Install backend dependencies
+      working-directory: backend
+      run: npm ci
+      
+    - name: Run backend tests
+      working-directory: backend
+      run: npm test
+    
+    # Only run deployment on push to main/master
+    deploy:
+      name: Deploy
+      needs: test-and-build
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      runs-on: ubuntu-latest
+      
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          
+      # Deploy to Vercel (example - you'll need to set up Vercel)
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+        
+      - name: Deploy to Vercel
+        run: |
+          cd frontend
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
