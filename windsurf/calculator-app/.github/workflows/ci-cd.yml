@@ -41,11 +41,27 @@ jobs:
       working-directory: frontend
       run: npm ci
       
-    - name: Run frontend tests
+    - name: Run frontend unit tests
       working-directory: frontend
       run: npm test -- --watchAll=false --coverage
       
-    - name: Build frontend
+    - name: Run frontend integration tests
+      working-directory: frontend
+      run: |
+        npm install -g serve
+        npm run build
+        serve -s build -l 3000 &
+        npm run test:integration
+      
+    - name: Run accessibility tests
+      working-directory: frontend
+      run: |
+        npm install -g pa11y-ci
+        npm run build
+        serve -s build -l 3000 &
+        pa11y-ci --config .pa11yci.json
+      
+    - name: Build frontend for production
       working-directory: frontend
       run: npm run build
     
@@ -54,9 +70,36 @@ jobs:
       working-directory: backend
       run: npm ci
       
-    - name: Run backend tests
+    - name: Run backend unit tests
       working-directory: backend
-      run: npm test
+      env:
+        NODE_ENV: test
+      run: |
+        npm run test:unit
+        
+    - name: Run backend integration tests
+      working-directory: backend
+      env:
+        NODE_ENV: test
+        TEST_DB_URI: mongodb://localhost:27017/test_calculator
+      run: |
+        npm run test:integration
+        
+    - name: Run security audit
+      working-directory: backend
+      run: npm audit --production
+      continue-on-error: true  # Continue if there are vulnerabilities (but they'll be reported)
+      
+    - name: Check code coverage
+      working-directory: backend
+      run: npm run test:coverage
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: backend/coverage
+        fail_ci_if_error: false
     
     # Only run deployment on push to main/master
     deploy:
