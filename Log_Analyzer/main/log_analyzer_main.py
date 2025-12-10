@@ -3,7 +3,7 @@ Log Analyzer
 @since: 06-01-2024
 """
 
-import fasttext
+# import fasttext
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from sklearn.naive_bayes import MultinomialNB
@@ -48,9 +48,7 @@ class LogAnalyzer:
 
     def preprocess(self, text):
         text = re.sub(r"\b[A-Za-z]:((\S\w+)+\W.(\S\w+)(\S\w+)+)\b", " ", text)
-        text = re.sub(
-            r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})", " ", text
-        )
+        text = re.sub(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})", " ", text)
         text = re.sub(" +", " ", text)
         text = re.sub(" #", " ", text)
         text = re.sub(r"[^\w\s\']", " ", text)
@@ -82,9 +80,7 @@ class LogAnalyzer:
         )
         return train, test
 
-    def split_data_frame_column_data(
-        self, values, label_num, test_size: float = 0.1
-    ):
+    def split_data_frame_column_data(self, values, label_num, test_size: float = 0.1):
         """Split data column"""
         X_train, X_test, y_train, y_test = train_test_split(
             values, label_num, test_size=test_size, random_state=2022
@@ -143,9 +139,7 @@ class LogAnalyzer:
                 "params": {"n_estimators": [1, 5, 10]},
             },
             "logistic_regression": {
-                "model": LogisticRegression(
-                    solver="liblinear", multi_class="auto"
-                ),
+                "model": LogisticRegression(solver="liblinear", multi_class="auto"),
                 "params": {"C": [1, 5, 10]},
             },
         }
@@ -163,19 +157,13 @@ class LogAnalyzer:
                 }
             )
 
-        df = pd.DataFrame(
-            scores, columns=["model", "best_score", "best_params"]
-        )
+        df = pd.DataFrame(scores, columns=["model", "best_score", "best_params"])
         return df
 
     def fasttext_classifier(self, train: pd.DataFrame, test: pd.DataFrame):
         """Fasttext Classifier"""
-        train.to_csv(
-            "log.train", columns=["fasttext_data"], index=False, header=False
-        )
-        test.to_csv(
-            "log.test", columns=["fasttext_data"], index=False, header=False
-        )
+        train.to_csv("log.train", columns=["fasttext_data"], index=False, header=False)
+        test.to_csv("log.test", columns=["fasttext_data"], index=False, header=False)
         model = fasttext.train_supervised(input="log.train")
         print(model.test("log.test"))
         return model
@@ -209,9 +197,7 @@ class LogAnalyzer:
 
     def run_fasttext_classifier(self):
         """Run fasttext classifier"""
-        data_frame = self.read_csv_file(
-            "sasai\src\sasai\log_analyzer\data\sample_data.csv"
-        )
+        data_frame = self.read_csv_file("AI-Projects/Log_Analyzer/data/sample_data.csv")
         data_frame = self.column_data_parsher(data_frame)
         data_frame = self.create_data_for_fasttext(data_frame)
         train, test = self.split_data_frame(data_frame, 0.25)
@@ -220,7 +206,7 @@ class LogAnalyzer:
 
     def return_stable_data_in_vectors(self):
         """Return stable data in vector form"""
-        df = self.read_csv_file("data\sample_data.csv")
+        df = self.read_csv_file("AI-Projects/Log_Analyzer/data/sample_data.csv")
         df = self.map_error_classes_to_num(df)
         df = self.create_num_vector(df)
         x_train, x_test, y_train, y_test = self.split_data_frame_column_data(
@@ -241,9 +227,7 @@ class LogAnalyzer:
     def run_gradient_boosting_classifier(self):
         """Run KNN classifier"""
         x_train, x_test, y_train, y_test = self.return_stable_data_in_vectors()
-        model = self.gradient_boosting_classifier(
-            x_train, x_test, y_train, y_test
-        )
+        model = self.gradient_boosting_classifier(x_train, x_test, y_train, y_test)
         return model
 
     def run_naive_bayes_classifier(self):
