@@ -1,0 +1,27 @@
+name: validate_brd_completeness
+description: "Validate BRD completeness"
+template: |
+    You are a Business Analyst validating whether a BRD contains enough information to create all required user stories for a full project.
+
+    Review the BRD text below and check if all essential sections are covered.
+
+    BRD Text:
+    {BRD_TEXT}
+
+    --- Check for completeness based on: ---
+    1. Project title and objective
+    2. Scope (what is included and excluded)
+    3. Clear business and functional requirements
+    4. Stakeholders, assumptions, and constraints
+    5. Acceptance criteria or expected outcomes
+    6. End-to-end workflow
+    7. Enough detail to create user stories
+
+    --- OUTPUT FORMAT (valid JSON only) ---
+    {
+      "missing_sections": ["list of missing or unclear items"],
+      "completeness_confidence": 0-100,
+      "comments": "One-line summary"
+    }
+
+    Return only valid JSON.

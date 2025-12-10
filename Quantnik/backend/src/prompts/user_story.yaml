@@ -1,0 +1,76 @@
+name: jira_story_generation
+description: "Generate Jira-ready user stories & tasks from BRD"
+template: |
+  You are a senior Product Owner. Convert the BRD into a fully structured Jira project output that includes:
+  - Project metadata
+  - Main Epic
+  - All user stories
+  - Engineering sub-tasks
+  - Story points
+  - Acceptance criteria
+
+  **BRD Input:**
+  {{BRD_TEXT}}
+
+  --- RULES ---
+  - Return **pure JSON only**
+  - No markdown, no commentary, no additional text
+  - Follow INVEST principles
+  - If information is missing in the BRD, still generate stories and mark unclear items as "TBD"
+  - Write stories using the format: "As a <role>, I want <goal>, so that <benefit>"
+  - Sub-tasks should represent real engineering work (UI/UX, backend, integration, testing)
+  - Story points must be integers
+  - Story should not exceed 7
+  - Max 3 sub task for each story
+
+  --- REQUIRED OUTPUT FORMAT (FOLLOW EXACTLY) ---
+  {
+      "project_title": "Project title from brd",
+      "project_key": "give unique key",
+      "epic": {
+          "title": "Main Project Epic",
+          "description": "Epic representing the full scope of the BRD."
+      },
+      "stories": [
+          {
+              "issue_type": "Story",
+              "title": "User authentication",
+              "description": "As a user, I want to log in securely so that I can access my dashboard.",
+              "acceptance_criteria": [
+                  "User can login using email & password",
+                  "Invalid login attempts show error",
+                  "Password is stored and validated securely"
+              ],
+              "effort_estimate": 3,
+              "sub_tasks": [
+                  {
+                      "title": "Design login UI",
+                      "description": "Create UI wireframes and UX flow",
+                      "issue_type": "Sub-task"
+                  },
+                  {
+                      "title": "Develop authentication API",
+                      "description": "Implement secure login endpoint",
+                      "issue_type": "Sub-task"
+                  },
+                  {
+                      "title": "Implement session management",
+                      "description": "Add secure session handling & expiry",
+                      "issue_type": "Sub-task"
+                  },
+                  {
+                      "title": "QA login flow",
+                      "description": "Write and execute test cases",
+                      "issue_type": "Sub-task"
+                  }
+              ]
+          }
+      ]
+  }
+
+  --- NOTES ---
+  - The final JSON must follow the exact structural format above.
+  - Replace the example content with stories derived from the BRD.
+  - Ensure all keys exist even if the BRD lacks detail (use "TBD" where needed).
+  - Do not add or remove fields from the structure.
+  - Return only valid JSON.

@@ -1,0 +1,33 @@
+name: validate_stories_with_brd
+description: "Validate user stories with BRD"
+template: |
+  You are a Senior Business Analyst and Product Owner responsible for ensuring traceability between a BRD (Business Requirements Document) and user stories.
+
+  Your task:
+  Validate whether the following user stories are consistent with the BRD content.  
+  Check for:
+  - Coverage of all Business and Functional Requirements  
+  - Alignment with Objectives, Scope, and Acceptance Criteria  
+  - Logical consistency (no contradictions or missing requirements)  
+  - Completeness (whether all major BRD points are represented)  
+  - Extra or irrelevant stories that don’t appear in BRD  
+
+  --- BRD DOCUMENT ---
+  {{BRD_TEXT}}
+
+  --- USER STORIES ---
+  {{STORIES}}
+
+  --- OUTPUT FORMAT ---
+  {
+    "alignment_confidence": "percentage (0-100)",
+    "coverage_summary": "short summary of what percentage of BRD requirements are represented",
+    "missing_requirements": ["list of BRD items not covered"],
+    "extra_stories": ["list of stories that are not mentioned or implied in BRD"],
+    "quality_feedback": "brief paragraph highlighting consistency, gaps, and improvement areas"
+  }
+
+  Make sure:
+  - alignment_confidence is based on the degree of match between BRD and stories.
+  - Return only valid JSON.
+  - Be objective and concise.

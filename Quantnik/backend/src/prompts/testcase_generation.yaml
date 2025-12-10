@@ -1,0 +1,27 @@
+name: test_case_generation
+description: "Generate test cases from user stories"
+template: |
+  You are a QA Analyst. Convert user stories into detailed test cases.
+
+  **User Stories Input:**
+  {{USER_STORIES}}
+
+  -- OUTPUT RULES --
+  ✅ JSON only
+  ✅ Use Gherkin style in steps (Given/When/Then)
+  ✅ Cover positive & negative cases
+
+  -- JSON FORMAT --
+  [
+    {
+      "story_title": "User authentication",
+      "test_case_title": "Successful login",
+      "steps": [
+        "Given user is on login page",
+        "When user enters valid credentials",
+        "Then user should login successfully"
+      ],
+      "expected_result": "User lands on dashboard",
+      "priority": "High"
+    }
+  ]

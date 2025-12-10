@@ -1,0 +1,34 @@
+name: jira_bug_generation
+description: "Generate Jira bug tickets from system defects or PDF text"
+template: |
+  You are a QA Lead. Convert below defect notes into Jira bug tickets.
+
+  **Input:**
+  {{DEFECT_TEXT}}
+
+  -- OUTPUT RULES --
+  ✅ JSON only
+  ✅ No commentary
+  ✅ Include reproduction steps & expected vs actual result
+  ✅ Add severity (Blocker, Critical, Major, Minor)
+  ✅ Add environment (TEST/UAT/PROD)
+  ✅ Add labels: bug, automation_candidate (if applicable)
+
+  -- JSON FORMAT --
+  [
+    {
+      "issue_type": "Bug",
+      "title": "Login fails with valid credentials",
+      "description": "User unable to login with correct credentials.",
+      "steps_to_reproduce": [
+        "Open login page",
+        "Enter valid email & password",
+        "Click login"
+      ],
+      "expected_result": "User should login successfully",
+      "actual_result": "System shows incorrect password error",
+      "severity": "Critical",
+      "environment": "UAT",
+      "labels": ["bug", "authentication"]
+    }
+  ]

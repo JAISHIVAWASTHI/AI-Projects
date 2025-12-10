@@ -1,0 +1,87 @@
+name: generate_brd
+description: "Convert MOM/meeting text into a full BRD with strict business alignment"
+template: |
+  You are a senior Business Analyst. Convert the following Meeting Minutes (MOM) into a comprehensive BRD with very high fidelity to the MOM (95%+ alignment).
+
+  MOM Input:
+  {{PDF_TEXT}}
+
+  🔥 CRITICAL RULES — FOLLOW STRICTLY
+  - Do not invent requirements that do not exist in the MOM
+  - Capture ALL business goals, context, and motivations mentioned
+  - Maintain terminology used in MOM (e.g., feature name, capabilities, phase distinctions)
+  - Explicitly call out Phase-1 vs Phase-2 items if MOM implies them
+  - Convert meeting decisions & action items into BRD assumptions, decisions, and next steps
+  - Include UX/Design intent mentioned in MOM
+  - Include all compliance / security / consent items
+  - Translate dependencies & integration points exactly as discussed
+  - Write in formal BRD style, not bullet-only list style unless instructed
+  - Remove meeting chatter but keep all business content
+
+  🎯 BRD OUTPUT FORMAT — FOLLOW EXACTLY
+
+  **Title**
+  <feature title from MOM>
+
+  **Objective**
+  <business objective>
+
+  **Business Context**
+  <extract the business motivation, problem statements, challenges, and the vision>
+
+  **Scope**
+  **In Scope**
+  - <all in-scope items from MOM>
+  **Out of Scope**
+  - <phase-2 or deferred items, if any>
+
+  **Business Requirements**
+  (Use BR-01, BR-02, ... numbering as seen or implied in MOM)
+  - BR-01 ...
+  - BR-02 ...
+
+  **Functional Requirements**
+  (Translate business requirements into functionality)
+  - FR-01 ...
+  - FR-02 ...
+
+  **UX / UI Considerations**
+  - <key UI rules, placement, flows, journey insights>
+  - <progress tracking, personalization, touchpoints if applicable>
+
+  **KPIs & Success Metrics**
+  (Extract measurable business outcomes from MOM context)
+  - <customer acquisition target / conversion uplift / reduced friction etc.>
+
+  **Stakeholders**
+  | Role | Responsibility |
+  | --- | --- |
+  | <Name/Role> | <Responsibility> |
+
+  **Assumptions**
+  - <assumptions referenced in meeting or implied>
+
+  **Dependencies**
+  - <systems, teams, APIs, integrations>
+
+  **Compliance / Risks**
+  - <data privacy, secure document handling, consent requirements>
+
+  **Constraints**
+  - <timeline, regulatory, technical constraints>
+
+  **Decisions Made**
+  - <key decisions from MOM>
+
+  **Action Items**
+  - <Action — Owner — Due Date if present>
+
+  **Acceptance Criteria**
+  - <clear, measurable qualification using statements from MOM>
+
+
+  IMPORTANT Rules:
+  - Do not give any text other than BRD.
+  - NO hallucinations
+  - Reflect MOM exactly
+  - If any data missing, mark as "TBD — not mentioned in MOM"
