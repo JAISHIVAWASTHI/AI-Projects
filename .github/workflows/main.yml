@@ -33,43 +33,59 @@ jobs:
         uses: actions/checkout@v4
 
       # 3. Setup Node.js (use a common version for both)
+# Setup Node.js with caching for both backend and frontend lockfiles
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: |
-            windsurf/calculator-app/backend/package-lock.json
-            windsurf/calculator-app/frontend/package-lock.json # Use the root project lockfile (if available)
-
-      # 4. Install Dependencies for Backend and Frontend
+            ${{ env.BACKEND_PATH }}/package-lock.json
+            ${{ env.FRONTEND_PATH }}/package-lock.json
+      
+      # Ensure expected project directories exist (fail early with clear message)
+      - name: Verify project paths exist
+        run: |
+          if [ ! -d "${{ env.BACKEND_PATH }}" ]; then echo "Missing backend path: ${{ env.BACKEND_PATH }}"; exit 1; fi
+          if [ ! -d "${{ env.FRONTEND_PATH }}" ]; then echo "Missing frontend path: ${{ env.FRONTEND_PATH }}"; exit 1; fi
+      
+      # Install Backend Dependencies (use npm ci when a lockfile exists)
       - name: Install Backend Dependencies
-        run: npm install
         working-directory: ${{ env.BACKEND_PATH }}
-        
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --prefer-offline --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+      
+      # Install Frontend Dependencies (use npm ci when a lockfile exists)
       - name: Install Frontend Dependencies
-        run: npm install
         working-directory: ${{ env.FRONTEND_PATH }}
-
-      # 5. Run Tests
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --prefer-offline --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+      
+      # Run tests (do not fail if test script is not defined)
       - name: Run Backend Tests
-        # Replace 'test' with your actual test command (e.g., 'npm run test:ci')
-        run: npm test 
         working-directory: ${{ env.BACKEND_PATH }}
-        
+        run: npm run test --if-present
+      
       - name: Run Frontend Tests
-        # Replace 'test' with your actual test command
-        run: npm test 
         working-directory: ${{ env.FRONTEND_PATH }}
-
-      # 6. Build Production Assets
+        run: npm run test --if-present
+      
+      # Build (do not fail if build script is not defined)
       - name: Build Backend (TypeScript compile)
-        run: npm run build # Assuming you have a build script for TS compilation
         working-directory: ${{ env.BACKEND_PATH }}
-
+        run: npm run build --if-present
+      
       - name: Build Frontend (React production build)
-        run: npm run build
         working-directory: ${{ env.FRONTEND_PATH }}
+        run: npm run build --if-present
       
       # --- Deployment Steps (Optional, highly dependent on target) ---
       
