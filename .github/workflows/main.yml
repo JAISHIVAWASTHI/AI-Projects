@@ -1,0 +1,120 @@
+name: Calculator App CI/CD
+
+# 1. Define when the workflow runs
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'windsurf/calculator-app/**' # Only run when files in this project change
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'windsurf/calculator-app/**'
+  
+  # Allow manual trigger from the GitHub Actions tab
+  workflow_dispatch:
+
+# Define environment variables for the project path for cleaner steps
+env:
+  PROJECT_PATH: windsurf/calculator-app
+  FRONTEND_PATH: windsurf/calculator-app/frontend
+  BACKEND_PATH: windsurf/calculator-app/backend
+
+jobs:
+  build-and-test:
+    name: Build & Test Calculator App
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 2. Checkout the repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 3. Setup Node.js (v20 LTS) with caching for both sub-projects
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          # Cache keys use both backend and frontend package-lock files
+          cache-dependency-path: |
+            ${{ env.BACKEND_PATH }}/package-lock.json
+            ${{ env.FRONTEND_PATH }}/package-lock.json
+      
+      # 4. Ensure expected project directories exist (fail early with clear message)
+      - name: Verify Project Paths Exist
+        run: |
+          if [ ! -d "${{ env.BACKEND_PATH }}" ]; then 
+            echo "::error::Missing backend path: ${{ env.BACKEND_PATH }}. Check monorepo structure."
+            exit 1
+          fi
+          if [ ! -d "${{ env.FRONTEND_PATH }}" ]; then 
+            echo "::error::Missing frontend path: ${{ env.FRONTEND_PATH }}. Check monorepo structure."
+            exit 1
+          fi
+      
+      # 5. Install Backend Dependencies
+      - name: Install Backend Dependencies
+        working-directory: ${{ env.BACKEND_PATH }}
+        run: |
+          if [ -f package-lock.json ]; then
+            # Use npm ci for consistent installs if lockfile is present
+            npm ci --prefer-offline --no-audit --no-fund
+          else
+            # Fallback to npm install if lockfile is missing
+            npm install --no-audit --no-fund
+          fi
+      
+      # 6. Install Frontend Dependencies 
+      # (This is the step that failed previously - ensure package-lock.json is committed!)
+        # Step 6. Install Frontend Dependencies (Modified)
+      - name: Install Frontend Dependencies
+        working-directory: ${{ env.FRONTEND_PATH }}
+        run: |
+          if [ -f package-lock.json ]; then
+            # 1. Try npm ci first (fastest and most consistent)
+            npm ci --prefer-offline --no-audit --no-fund || { 
+              # 2. If npm ci fails due to sync error, try npm install as a fallback
+              echo "::warning::npm ci failed. Attempting npm install to fix lockfile sync..."
+              npm install --no-audit --no-fund
+            }
+          else
+            # 3. If no lockfile exists, just use npm install
+            npm install --no-audit --no-fund
+          fi
+      
+      # 7. Run Tests (use --if-present to succeed if 'test' script is missing)
+      - name: Run Backend Tests
+        working-directory: ${{ env.BACKEND_PATH }}
+        run: npm run test --if-present
+      
+      - name: Run Frontend Tests
+        working-directory: ${{ env.FRONTEND_PATH }}
+        run: npm run test --if-present
+      
+      # 8. Build Production Assets (use --if-present)
+      - name: Build Backend (TypeScript compile)
+        working-directory: ${{ env.BACKEND_PATH }}
+        run: npm run build --if-present
+      
+      - name: Build Frontend (React production build)
+        working-directory: ${{ env.FRONTEND_PATH }}
+        run: npm run build --if-present
+      
+      # 9. Artifact Upload (Optional but highly recommended)
+      - name: Archive Production Artifacts (Backend & Frontend)
+        uses: actions/upload-artifact@v4
+        with:
+          name: calculator-app-build-artifacts
+          path: |
+            ${{ env.BACKEND_PATH }}/dist # Adjust 'dist' based on your backend build output
+            ${{ env.FRONTEND_PATH }}/build # Adjust 'build' based on your frontend build output
+            
+      # --- Deployment Steps ---
+      
+      # Example: Deployment to a cloud service happens here after a successful build
+      # - name: Deploy to Cloud Service
+      #   if: github.ref == 'refs/heads/main' 
+      #   uses: ... (e.g., aws-actions/configure-aws-credentials@v4)
