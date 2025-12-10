@@ -4,6 +4,7 @@ from numpy.linalg import norm
 import warnings
 import tensorflow as tf
 from tensorflow.keras import layers, activations, models, preprocessing, utils
+from tf_keras.models import load_model
 import pandas as pd
 
 warnings.filterwarnings("ignore")
@@ -147,7 +148,7 @@ class AI_BOT:
 
     def load_trained_model(self):
         """Load trained model"""
-        model = models.load_model("Cybor_Bot/model10.h5")
+        model = load_model("AI-Projects/Cybor_Bot/model10.h5", compile=False)
         print(model.summary)
         return model
 
